@@ -18,134 +18,319 @@
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .navbar {
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-brand:hover {
+            color: #74b9ff;
+            text-decoration: none;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin: 5px 15px;
+        }
+
+        .nav-link {
+            color: #bdc3c7 !important;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(116, 185, 255, 0.1);
+            color: #74b9ff !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, #74b9ff, #0984e3);
+            color: #fff !important;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            color: #bdc3c7;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .main-wrapper {
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .top-header {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95) !important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            min-height: calc(100vh - 80px);
+            border-radius: 20px 0 0 0;
+            margin: 0;
+            padding: 30px;
         }
 
         .card {
             backdrop-filter: blur(10px);
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .main-content {
-            background: rgba(255, 255, 255, 0.1);
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            min-height: calc(100vh - 120px);
-            border-radius: 20px;
-            margin: 20px 0;
-            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-wrapper {
+                margin-left: 0;
+            }
+            
+            .mobile-toggle {
+                display: block !important;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .page-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Sidebar Navigation -->
     {% if current_user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('dashboard') }}">
-                <i class="fas fa-users me-2"></i>Employee Portal
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-brand">
+                <i class="fas fa-users me-2"></i>
+                Employee Portal
             </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" 
-                           href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    {% if current_user.is_manager %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['employees', 'add_employee', 'edit_employee'] %}active{% endif %}" 
-                           href="{{ url_for('employees') }}">
-                            <i class="fas fa-users me-1"></i>Employees
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['feedback', 'add_feedback', 'edit_feedback'] %}active{% endif %}" 
-                           href="{{ url_for('feedback') }}">
-                            <i class="fas fa-comments me-1"></i>Feedback
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'billing' %}active{% endif %}" 
-                           href="{{ url_for('billing') }}">
-                            <i class="fas fa-file-invoice-dollar me-1"></i>Billing
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'hierarchy' %}active{% endif %}" 
-                           href="{{ url_for('hierarchy') }}">
-                            <i class="fas fa-sitemap me-1"></i>Hierarchy
-                        </a>
-                    </li>
-                </ul>
-
-                <ul class="navbar-nav">
-                    {% if current_user.is_manager %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
-                           data-bs-toggle="dropdown">
-                            <i class="fas fa-cog me-1"></i>Admin
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('import_excel') }}">
-                                <i class="fas fa-file-excel me-1"></i>Import Excel
-                            </a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
-                           data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-1"></i>{{ current_user.name }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('edit_employee', id=current_user.id) }}">
-                                <i class="fas fa-edit me-1"></i>Edit Profile
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt me-1"></i>Logout
-                            </a></li>
-                        </ul>
-                    </li>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="{{ url_for('dashboard') }}" 
+                   class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </div>
+            
+            {% if current_user.is_manager %}
+            <div class="nav-item">
+                <a href="{{ url_for('employees') }}" 
+                   class="nav-link {% if request.endpoint in ['employees', 'add_employee', 'edit_employee'] %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    Employee Details
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{{ url_for('feedback') }}" 
+                   class="nav-link {% if request.endpoint in ['feedback', 'add_feedback', 'edit_feedback'] %}active{% endif %}">
+                    <i class="fas fa-comments"></i>
+                    Feedback Management
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{{ url_for('billing') }}" 
+                   class="nav-link {% if request.endpoint == 'billing' %}active{% endif %}">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Billing Details
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="nav-item">
+                <a href="{{ url_for('hierarchy') }}" 
+                   class="nav-link {% if request.endpoint == 'hierarchy' %}active{% endif %}">
+                    <i class="fas fa-sitemap"></i>
+                    Hierarchy
+                </a>
+            </div>
+            
+            {% if current_user.is_manager %}
+            <div class="nav-item">
+                <a href="{{ url_for('import_excel') }}" 
+                   class="nav-link {% if request.endpoint == 'import_excel' %}active{% endif %}">
+                    <i class="fas fa-file-excel"></i>
+                    Import Excel
+                </a>
+            </div>
+            {% endif %}
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="dropdown">
+                <div class="user-info dropdown-toggle" data-bs-toggle="dropdown" role="button">
+                    <div class="user-avatar">
+                        {{ current_user.name[0].upper() }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ current_user.name }}</div>
+                        <small>{% if current_user.is_manager %}Manager{% else %}Employee{% endif %}</small>
+                    </div>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-up">
+                    <li><a class="dropdown-item" href="{{ url_for('edit_employee', id=current_user.id) }}">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a></li>
                 </ul>
             </div>
         </div>
-    </nav>
+    </div>
+    
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <!-- Top Header -->
+        <div class="top-header">
+            <button class="mobile-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="page-title">
+                {% if request.endpoint == 'dashboard' %}Dashboard
+                {% elif request.endpoint == 'employees' %}Employee Details
+                {% elif request.endpoint == 'feedback' %}Feedback Management
+                {% elif request.endpoint == 'billing' %}Billing Details
+                {% elif request.endpoint == 'hierarchy' %}Organization Hierarchy
+                {% elif request.endpoint == 'import_excel' %}Import Excel Data
+                {% else %}Employee Portal
+                {% endif %}
+            </h4>
+            <div class="d-flex align-items-center">
+                <small class="text-muted">Welcome back, {{ current_user.name }}</small>
+            </div>
+        </div>
     {% endif %}
 
-    <!-- Flash Messages -->
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
+    
 
     <!-- Main Content -->
-    <main class="{% if current_user.is_authenticated %}container{% else %}container-fluid{% endif %}">
-        <div class="{% if current_user.is_authenticated %}main-content{% else %}vh-100{% endif %}">
-            {% block content %}{% endblock %}
+    {% if current_user.is_authenticated %}
+        <!-- Flash Messages -->
+        <div style="padding: 0 30px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         </div>
+        
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    <main class="container-fluid vh-100">
+        {% block content %}{% endblock %}
     </main>
+    {% endif %}
 
     <!-- Footer -->
     {% if current_user.is_authenticated %}
@@ -160,6 +345,25 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+        
+        // Auto-close sidebar on mobile when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !toggle.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

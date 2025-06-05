@@ -273,11 +273,14 @@
                 <!-- Success details will be loaded here -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a href="{{ url_for('employees') }}" class="btn btn-primary">
-                    <i class="fas fa-users me-1"></i>View Employees
-                </a>
-            </div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-success me-2">
+                                <i class="fas fa-tachometer-alt me-1"></i>Go to Dashboard
+                            </a>
+                            <a href="{{ url_for('employees') }}" class="btn btn-primary">
+                                <i class="fas fa-users me-1"></i>View Employees
+                            </a>
+                        </div>
         </div>
     </div>
 </div>
@@ -289,7 +292,7 @@
         const fileInput = document.getElementById('file');
         const uploadForm = document.getElementById('uploadForm');
         const importBtn = document.getElementById('importBtn');
-        
+
         // File selection handler
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -300,7 +303,7 @@
                 hideFilePreview();
             }
         });
-        
+
         // Form submission handler
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -309,14 +312,14 @@
             }
         });
     });
-    
+
     function showFilePreview(file) {
         const preview = document.getElementById('filePreview');
         const fileInfo = document.getElementById('fileInfo');
-        
+
         const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
         const lastModified = new Date(file.lastModified).toLocaleString();
-        
+
         fileInfo.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
@@ -329,14 +332,14 @@
                 </div>
             </div>
         `;
-        
+
         preview.style.display = 'block';
     }
-    
+
     function hideFilePreview() {
         document.getElementById('filePreview').style.display = 'none';
     }
-    
+
     function validateFile(file) {
         const status = document.getElementById('importStatus');
         const maxSize = 16 * 1024 * 1024; // 16MB
@@ -344,10 +347,10 @@
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'application/vnd.ms-excel'
         ];
-        
+
         let isValid = true;
         let message = '';
-        
+
         if (file.size > maxSize) {
             isValid = false;
             message = 'File size exceeds 16MB limit';
@@ -357,17 +360,17 @@
         } else {
             message = 'File validated successfully';
         }
-        
+
         status.innerHTML = `
             <p class="mb-0 ${isValid ? 'text-success' : 'text-danger'}">
                 <i class="fas fa-${isValid ? 'check' : 'times'} me-1"></i>${message}
             </p>
         `;
-        
+
         document.getElementById('importBtn').disabled = !isValid;
         return isValid;
     }
-    
+
     function validateForm() {
         const fileInput = document.getElementById('file');
         if (!fileInput.files.length) {
@@ -376,17 +379,17 @@
         }
         return validateFile(fileInput.files[0]);
     }
-    
+
     function startImport() {
         const progressModal = new bootstrap.Modal(document.getElementById('progressModal'));
         progressModal.show();
-        
+
         // Simulate import progress
         let progress = 0;
         const progressBar = document.querySelector('.progress-bar');
         const progressText = document.getElementById('progressText');
         const progressDetails = document.getElementById('progressDetails');
-        
+
         const stages = [
             'Reading Excel file...',
             'Validating data...',
@@ -394,21 +397,21 @@
             'Saving to database...',
             'Finalizing import...'
         ];
-        
+
         let currentStage = 0;
-        
+
         const interval = setInterval(() => {
             progress += Math.random() * 20;
             if (progress > 100) progress = 100;
-            
+
             progressBar.style.width = progress + '%';
             progressText.textContent = Math.round(progress) + '%';
-            
+
             if (currentStage < stages.length && progress > (currentStage + 1) * 20) {
                 progressDetails.innerHTML = `<p class="mb-1">${stages[currentStage]}</p>`;
                 currentStage++;
             }
-            
+
             if (progress >= 100) {
                 clearInterval(interval);
                 setTimeout(() => {
@@ -419,12 +422,12 @@
             }
         }, 200);
     }
-    
+
     function submitImportForm() {
         // Create a new FormData object and submit
         const form = document.getElementById('uploadForm');
         const formData = new FormData(form);
-        
+
         fetch(form.action, {
             method: 'POST',
             body: formData
@@ -440,15 +443,15 @@
             alert('Import failed. Please try again.');
         });
     }
-    
+
     function showSuccessModal() {
         const successModal = new bootstrap.Modal(document.getElementById('successModal'));
         const successDetails = document.getElementById('successDetails');
-        
+
         // Simulate success data
         const importedCount = Math.floor(Math.random() * 20) + 5;
         const skippedCount = Math.floor(Math.random() * 3);
-        
+
         successDetails.innerHTML = `
             <div class="alert alert-success">
                 <h6 class="alert-heading">Import Completed Successfully!</h6>
@@ -474,10 +477,10 @@
                 </ul>
             </div>
         `;
-        
+
         successModal.show();
     }
-    
+
     function downloadTemplate() {
         // Create sample Excel template data
         const templateData = [
@@ -512,12 +515,12 @@
                 'Manager ID': ''
             }
         ];
-        
+
         // Convert to CSV format (simplified for demo)
         const csvContent = convertToCSV(templateData);
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'employee_import_template.csv';
@@ -526,14 +529,14 @@
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }
-    
+
     function convertToCSV(data) {
         const headers = Object.keys(data[0]);
         const csvRows = [];
-        
+
         // Add headers
         csvRows.push(headers.join(','));
-        
+
         // Add data rows
         for (const row of data) {
             const values = headers.map(header => {
@@ -542,7 +545,7 @@
             });
             csvRows.push(values.join(','));
         }
-        
+
         return csvRows.join('\n');
     }
 </script>
