@@ -153,8 +153,9 @@ def get_dashboard_analytics(employees):
 
 def create_sample_data():
     """Create sample data for testing - only use if no data exists"""
-    from models import Employee
+    # Import here to avoid circular imports
     from app import db
+    from models import Employee
 
     if Employee.query.first():
         return  # Data already exists
