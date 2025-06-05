@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime, date
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
@@ -326,10 +326,29 @@ def import_excel():
                 result = process_excel_file(file, current_user.id)
                 
                 if result['success']:
-                    flash(f'Successfully imported {result["count"]} employees', 'success')
+                    success_msg = f'Successfully imported {result["count"]} employees'
+                    if result['skipped'] > 0:
+                        success_msg += f' (skipped {result["skipped"]} duplicates)'
+                    
+                    flash(success_msg, 'success')
+                    
+                    # Show errors if any
+                    if result['errors']:
+                        error_summary = f"Import completed with {len(result['errors'])} warnings/errors. "
+                        error_summary += "Check the details below."
+                        flash(error_summary, 'warning')
+                        
+                        # Store detailed errors in session for display
+                        session = request.environ.get('werkzeug.session') 
+                        if session:
+                            session['import_errors'] = result['errors'][:20]  # Limit to 20 errors
+                    
                     return redirect(url_for('employees'))
                 else:
-                    flash(f'Import failed: {result["error"]}', 'error')
+                    error_msg = f'Import failed: {result["error"]}'
+                    if result['errors']:
+                        error_msg += f' Additional errors: {len(result["errors"])} rows had issues.'
+                    flash(error_msg, 'error')
                     
             except Exception as e:
                 flash(f'Error processing file: {str(e)}', 'error')
@@ -359,3 +378,95 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+# API endpoint to get import results
+@app.route('/api/import_results')
+@login_required 
+def import_results():
+    session = request.environ.get('werkzeug.session')
+    if session and 'import_errors' in session:
+        errors = session.pop('import_errors', [])
+        return jsonify({'errors': errors})
+    return jsonify({'errors': []})
+@app.route('/download_template')
+@login_required
+def download_template():
+    if not current_user.is_manager:
+        flash('Access denied. Only managers can download templates.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Create sample data
+        sample_data = [
+            {
+                'Employee ID': 'EMP001',
+                'Name': 'John Doe',
+                'Email': 'john.doe@company.com',
+                'Designation': 'Software Engineer',
+                'Department': 'Engineering',
+                'Location': 'Bangalore',
+                'Team': 'UFS',
+                'Skills': 'Python, JavaScript, SQL',
+                'Employment Type': 'Permanent',
+                'Billable Status': 'Billable',
+                'Join Date': '2024-01-15',
+                'Experience Years': '5.5',
+                'Manager ID': '',
+                'Is Manager': 'No'
+            },
+            {
+                'Employee ID': 'EMP002',
+                'Name': 'Jane Smith',
+                'Email': 'jane.smith@company.com',
+                'Designation': 'Senior Developer',
+                'Department': 'Engineering',
+                'Location': 'Mumbai',
+                'Team': 'RG',
+                'Skills': 'Java, React, MongoDB',
+                'Employment Type': 'Permanent',
+                'Billable Status': 'Billable',
+                'Join Date': '2023-08-01',
+                'Experience Years': '7.0',
+                'Manager ID': 'EMP001',
+                'Is Manager': 'Yes'
+            }
+        ]
+        
+        # Create DataFrame and save to Excel
+        df = pd.DataFrame(sample_data)
+        
+        # Create Excel file in memory
+        from io import BytesIO
+        output = BytesIO()
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Employees', index=False)
+            
+            # Get the workbook and worksheet
+            workbook = writer.book
+            worksheet = writer.sheets['Employees']
+            
+            # Auto-adjust column widths
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        output.seek(0)
+        
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name='employee_import_template.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+    except Exception as e:
+        flash(f'Error generating template: {str(e)}', 'error')
+        return redirect(url_for('import_excel'))
