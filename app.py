@@ -17,7 +17,7 @@ login_manager = LoginManager()
 
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
+app.secret_key = os.environ.get("SESSION_SECRET") or "dev-secret-key-change-in-production"
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # configure the database
@@ -47,6 +47,10 @@ with app.app_context():
     # Import models to ensure tables are created
     import models
     db.create_all()
+    
+    # Create sample data if no users exist
+    from utils import create_sample_data
+    create_sample_data()
     
     # Import routes
     import routes
