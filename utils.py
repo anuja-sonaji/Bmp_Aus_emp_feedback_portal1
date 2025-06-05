@@ -150,19 +150,12 @@ def get_dashboard_analytics(employees):
                     analytics['skills'][skill] = analytics['skills'].get(skill, 0) + 1
 
     return analytics
-```
-
-```python
-# main_app.py (or whatever the original file was named)
-import pandas as pd
-import json
-from datetime import datetime
-from app import db
-from models import Employee
-from utils import process_excel_file, get_dashboard_analytics, allowed_file
 
 def create_sample_data():
     """Create sample data for testing - only use if no data exists"""
+    from models import Employee
+    from app import db
+
     if Employee.query.first():
         return  # Data already exists
 
@@ -190,87 +183,7 @@ def create_sample_data():
             'employee_id': 'EMP002',
             'name': 'Anuja Sharma',
             'email': 'anuja@company.com',
-            'designation': 'Engineering Manager',
-            'team': 'UFS'
-        },
-        {
-            'employee_id': 'EMP003',
-            'name': 'Asha Patel',
-            'email': 'asha@company.com',
-            'designation': 'Tech Lead',
-            'team': 'RG'
-        },
-        {
-            'employee_id': 'EMP004',
-            'name': 'Vinod Singh',
-            'email': 'vinod@company.com',
-            'designation': 'Senior Manager',
-            'team': 'UFS'
-        }
-    ]
-
-    for mgr_data in managers:
-        manager = Employee(
-            employee_id=mgr_data['employee_id'],
-            name=mgr_data['name'],
-            email=mgr_data['email'],
-            designation=mgr_data['designation'],
-            department='Engineering',
-            location='Bangalore',
-            team=mgr_data['team'],
-            employment_type='Permanent',
-            billable_status='Billable',
-            is_manager=True,
-            manager_id=top_manager.id
-        )
-        manager.set_password('password123')
-        db.session.add(manager)
-
-    db.session.commit()
-```
-
-```analysis
-The solution involves moving the utility functions to a separate utils.py file and updating the original file to import these functions.
-```
-
-```replit_final_file
-import pandas as pd
-import json
-from datetime import datetime
-from app import db
-from models import Employee
-from utils import process_excel_file, get_dashboard_analytics, allowed_file
-
-def create_sample_data():
-    """Create sample data for testing - only use if no data exists"""
-    if Employee.query.first():
-        return  # Data already exists
-
-    # Create top-level manager
-    top_manager = Employee(
-        employee_id='EMP001',
-        name='Sooraj Kumar',
-        email='sooraj@company.com',
-        designation='VP Engineering',
-        department='Engineering',
-        location='Bangalore',
-        team='UFS',
-        employment_type='Permanent',
-        billable_status='Non-billable',
-        is_manager=True,
-        manager_id=None
-    )
-    top_manager.set_password('password123')
-    db.session.add(top_manager)
-    db.session.commit()
-
-    # Create line managers
-    managers = [
-        {
-            'employee_id': 'EMP002',
-            'name': 'Anuja Sharma',
-            'email': 'anuja@company.com',
-            'designation': 'Engineering Manager',
+            'designation=': 'Engineering Manager',
             'team': 'UFS'
         },
         {
