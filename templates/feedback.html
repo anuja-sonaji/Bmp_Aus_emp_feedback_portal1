@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback Management - Employee Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-comments me-2"></i>Feedback Management
+    </h2>
+    <a href="{{ url_for('add_feedback') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Add Feedback
+    </a>
+</div>
+
+<!-- Filter Controls -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <label for="filterType" class="form-label">Feedback Type</label>
+                <select class="form-select" id="filterType">
+                    <option value="">All Types</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterYear" class="form-label">Year</label>
+                <select class="form-select" id="filterYear">
+                    <option value="">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchEmployee" class="form-label">Search Employee</label>
+                <input type="text" class="form-control" id="searchEmployee" placeholder="Search by employee name...">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if feedback_list %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Feedback Records ({{ feedback_list|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="feedbackTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Type</th>
+                        <th>Period</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedback_list %}
+                    <tr data-type="{{ feedback.feedback_type }}" data-year="{{ feedback.period_year }}" 
+                        data-employee="{{ feedback.received_by.name.lower() }}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-info rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ feedback.received_by.name }}</div>
+                                    <small class="text-muted">{{ feedback.received_by.designation or 'Employee' }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'info' if feedback.feedback_type == 'Monthly' else 'warning' }}">
+                                {{ feedback.feedback_type }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if feedback.feedback_type == 'Monthly' %}
+                                <strong>{{ feedback.period_month }}/{{ feedback.period_year }}</strong>
+                                <br><small class="text-muted">Month {{ feedback.period_month }}</small>
+                            {% else %}
+                                <strong>Q{{ feedback.period_quarter }} {{ feedback.period_year }}</strong>
+                                <br><small class="text-muted">Quarter {{ feedback.period_quarter }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if feedback.performance_rating %}
+                                <div class="d-flex align-items-center">
+                                    {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {{ 'text-warning' if i <= feedback.performance_rating else 'text-muted' }}"></i>
+                                    {% endfor %}
+                                    <span class="ms-2 fw-bold">{{ feedback.performance_rating }}/5</span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Not Rated</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if feedback.performance_rating %}
+                                {% if feedback.performance_rating >= 4 %}
+                                    <span class="badge bg-success">Excellent</span>
+                                {% elif feedback.performance_rating >= 3 %}
+                                    <span class="badge bg-primary">Good</span>
+                                {% elif feedback.performance_rating >= 2 %}
+                                    <span class="badge bg-warning">Average</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Needs Improvement</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ feedback.created_at.strftime('%Y-%m-%d') }}</div>
+                            <small class="text-muted">{{ feedback.created_at.strftime('%H:%M') }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="viewFeedback({{ feedback.id }})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="{{ url_for('edit_feedback', id=feedback.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary mb-1" id="totalFeedback">{{ feedback_list|length }}</h3>
+                <p class="mb-0 text-muted">Total Feedback</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info mb-1" id="monthlyCount">
+                    {{ feedback_list|selectattr('feedback_type', 'equalto', 'Monthly')|list|length }}
+                </h3>
+                <p class="mb-0 text-muted">Monthly Reviews</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning mb-1" id="quarterlyCount">
+                    {{ feedback_list|selectattr('feedback_type', 'equalto', 'Quarterly')|list|length }}
+                </h3>
+                <p class="mb-0 text-muted">Quarterly Reviews</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success mb-1" id="avgRating">
+                    {% set rated_feedback = feedback_list|selectattr('performance_rating')|list %}
+                    {% if rated_feedback %}
+                        {{ "%.1f"|format((rated_feedback|sum(attribute='performance_rating')) / (rated_feedback|length)) }}
+                    {% else %}
+                        0.0
+                    {% endif %}
+                </h3>
+                <p class="mb-0 text-muted">Average Rating</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-comments fa-4x text-muted"></i>
+    </div>
+    <h4 class="text-muted">No Feedback Records</h4>
+    <p class="text-muted mb-4">You haven't given any feedback yet. Start by providing feedback to your team members.</p>
+    <a href="{{ url_for('add_feedback') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Give First Feedback
+    </a>
+</div>
+{% endif %}
+
+<!-- Feedback Detail Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-comments me-2"></i>Feedback Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="feedbackDetails">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Filter functionality
+    document.getElementById('filterType').addEventListener('change', applyFilters);
+    document.getElementById('filterYear').addEventListener('change', applyFilters);
+    document.getElementById('searchEmployee').addEventListener('input', applyFilters);
+    
+    function applyFilters() {
+        const typeFilter = document.getElementById('filterType').value.toLowerCase();
+        const yearFilter = document.getElementById('filterYear').value;
+        const searchFilter = document.getElementById('searchEmployee').value.toLowerCase();
+        
+        const rows = document.querySelectorAll('#feedbackTable tbody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const type = row.dataset.type.toLowerCase();
+            const year = row.dataset.year;
+            const employee = row.dataset.employee;
+            
+            const typeMatch = !typeFilter || type.includes(typeFilter);
+            const yearMatch = !yearFilter || year === yearFilter;
+            const employeeMatch = !searchFilter || employee.includes(searchFilter);
+            
+            if (typeMatch && yearMatch && employeeMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update count
+        const countElement = document.querySelector('.card-header h5');
+        if (countElement) {
+            countElement.textContent = `Feedback Records (${visibleCount})`;
+        }
+    }
+    
+    function clearFilters() {
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterYear').value = '';
+        document.getElementById('searchEmployee').value = '';
+        applyFilters();
+    }
+    
+    function viewFeedback(feedbackId) {
+        // This would typically load feedback details via AJAX
+        // For now, show a placeholder
+        const modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+        document.getElementById('feedbackDetails').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading feedback details...</p>
+            </div>
+        `;
+        modal.show();
+        
+        // Simulate loading (in real app, make AJAX call)
+        setTimeout(() => {
+            document.getElementById('feedbackDetails').innerHTML = `
+                <p class="text-muted">Detailed feedback view would be implemented here.</p>
+                <p>Feedback ID: ${feedbackId}</p>
+            `;
+        }, 500);
+    }
+</script>
+{% endblock %}

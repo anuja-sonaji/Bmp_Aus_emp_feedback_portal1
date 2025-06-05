@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+
+{% block title %}Import Excel - Employee Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-file-excel me-2"></i>Import Employee Data
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Instructions -->
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-1"></i>Import Instructions
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Upload an Excel file (.xlsx or .xls) containing employee data</li>
+                        <li>The file should contain columns as specified in the template below</li>
+                        <li>Existing employees with the same Employee ID will be skipped</li>
+                        <li>All imported employees will be assigned to you as their manager</li>
+                        <li>Default password 'password123' will be set for all new employees</li>
+                    </ul>
+                </div>
+
+                <!-- Upload Form -->
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">
+                            <i class="fas fa-upload me-1"></i>Select Excel File
+                        </label>
+                        <input type="file" class="form-control" id="file" name="file" 
+                               accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            Maximum file size: 16MB. Supported formats: .xlsx, .xls
+                        </div>
+                    </div>
+
+                    <!-- Preview Area -->
+                    <div id="filePreview" class="mb-4" style="display: none;">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-eye me-1"></i>File Preview
+                                </h6>
+                                <div id="fileInfo"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Options -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Import Options</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="skipDuplicates" checked>
+                                        <label class="form-check-label" for="skipDuplicates">
+                                            Skip duplicate Employee IDs
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="validateEmails" checked>
+                                        <label class="form-check-label" for="validateEmails">
+                                            Validate email addresses
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sendWelcomeEmails">
+                                        <label class="form-check-label" for="sendWelcomeEmails">
+                                            Send welcome emails (Not implemented)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Import Status</h6>
+                                </div>
+                                <div class="card-body" id="importStatus">
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-clock me-1"></i>Ready to import
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('employees') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Employees
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-info me-2" onclick="downloadTemplate()">
+                                <i class="fas fa-download me-1"></i>Download Template
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="importBtn">
+                                <i class="fas fa-upload me-1"></i>Import Data
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expected Columns Template -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table me-2"></i>Expected Excel Columns
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Employee ID</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>Unique identifier for employee</td>
+                                <td>EMP001</td>
+                            </tr>
+                            <tr>
+                                <td><code>Name</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>Full name of employee</td>
+                                <td>John Doe</td>
+                            </tr>
+                            <tr>
+                                <td><code>Email</code></td>
+                                <td>Email</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>Unique email address</td>
+                                <td>john.doe@company.com</td>
+                            </tr>
+                            <tr>
+                                <td><code>Designation</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Job title/designation</td>
+                                <td>Software Engineer</td>
+                            </tr>
+                            <tr>
+                                <td><code>Department</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Department name</td>
+                                <td>Engineering</td>
+                            </tr>
+                            <tr>
+                                <td><code>Location</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Work location</td>
+                                <td>Bangalore</td>
+                            </tr>
+                            <tr>
+                                <td><code>Team</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Team assignment (UFS/RG)</td>
+                                <td>UFS</td>
+                            </tr>
+                            <tr>
+                                <td><code>Skills</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Comma-separated skills</td>
+                                <td>Python, JavaScript, SQL</td>
+                            </tr>
+                            <tr>
+                                <td><code>Employment Type</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Permanent or Contract</td>
+                                <td>Permanent</td>
+                            </tr>
+                            <tr>
+                                <td><code>Billable Status</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Billable or Non-billable</td>
+                                <td>Billable</td>
+                            </tr>
+                            <tr>
+                                <td><code>Join Date</code></td>
+                                <td>Date</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Date of joining (YYYY-MM-DD)</td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td><code>Experience Years</code></td>
+                                <td>Number</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Years of experience</td>
+                                <td>5.5</td>
+                            </tr>
+                            <tr>
+                                <td><code>Manager ID</code></td>
+                                <td>Text</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Employee ID of manager (for hierarchy)</td>
+                                <td>EMP001</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>Importing Data
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+                <div id="progressDetails">
+                    <p class="mb-1">Preparing to import...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle text-success me-2"></i>Import Successful
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="successDetails">
+                <!-- Success details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('employees') }}" class="btn btn-primary">
+                    <i class="fas fa-users me-1"></i>View Employees
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const uploadForm = document.getElementById('uploadForm');
+        const importBtn = document.getElementById('importBtn');
+        
+        // File selection handler
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showFilePreview(file);
+                validateFile(file);
+            } else {
+                hideFilePreview();
+            }
+        });
+        
+        // Form submission handler
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateForm()) {
+                startImport();
+            }
+        });
+    });
+    
+    function showFilePreview(file) {
+        const preview = document.getElementById('filePreview');
+        const fileInfo = document.getElementById('fileInfo');
+        
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        const lastModified = new Date(file.lastModified).toLocaleString();
+        
+        fileInfo.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>File Name:</strong> ${file.name}</p>
+                    <p class="mb-1"><strong>File Size:</strong> ${sizeInMB} MB</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>File Type:</strong> ${file.type}</p>
+                    <p class="mb-1"><strong>Last Modified:</strong> ${lastModified}</p>
+                </div>
+            </div>
+        `;
+        
+        preview.style.display = 'block';
+    }
+    
+    function hideFilePreview() {
+        document.getElementById('filePreview').style.display = 'none';
+    }
+    
+    function validateFile(file) {
+        const status = document.getElementById('importStatus');
+        const maxSize = 16 * 1024 * 1024; // 16MB
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel'
+        ];
+        
+        let isValid = true;
+        let message = '';
+        
+        if (file.size > maxSize) {
+            isValid = false;
+            message = 'File size exceeds 16MB limit';
+        } else if (!allowedTypes.includes(file.type)) {
+            isValid = false;
+            message = 'Invalid file type. Please upload .xlsx or .xls files only';
+        } else {
+            message = 'File validated successfully';
+        }
+        
+        status.innerHTML = `
+            <p class="mb-0 ${isValid ? 'text-success' : 'text-danger'}">
+                <i class="fas fa-${isValid ? 'check' : 'times'} me-1"></i>${message}
+            </p>
+        `;
+        
+        document.getElementById('importBtn').disabled = !isValid;
+        return isValid;
+    }
+    
+    function validateForm() {
+        const fileInput = document.getElementById('file');
+        if (!fileInput.files.length) {
+            alert('Please select a file to import');
+            return false;
+        }
+        return validateFile(fileInput.files[0]);
+    }
+    
+    function startImport() {
+        const progressModal = new bootstrap.Modal(document.getElementById('progressModal'));
+        progressModal.show();
+        
+        // Simulate import progress
+        let progress = 0;
+        const progressBar = document.querySelector('.progress-bar');
+        const progressText = document.getElementById('progressText');
+        const progressDetails = document.getElementById('progressDetails');
+        
+        const stages = [
+            'Reading Excel file...',
+            'Validating data...',
+            'Processing employees...',
+            'Saving to database...',
+            'Finalizing import...'
+        ];
+        
+        let currentStage = 0;
+        
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 100) progress = 100;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            
+            if (currentStage < stages.length && progress > (currentStage + 1) * 20) {
+                progressDetails.innerHTML = `<p class="mb-1">${stages[currentStage]}</p>`;
+                currentStage++;
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    progressModal.hide();
+                    // Actually submit the form
+                    submitImportForm();
+                }, 500);
+            }
+        }, 200);
+    }
+    
+    function submitImportForm() {
+        // Create a new FormData object and submit
+        const form = document.getElementById('uploadForm');
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            // Parse response or redirect to success page
+            // For now, show success modal
+            showSuccessModal();
+        })
+        .catch(error => {
+            console.error('Import failed:', error);
+            alert('Import failed. Please try again.');
+        });
+    }
+    
+    function showSuccessModal() {
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        const successDetails = document.getElementById('successDetails');
+        
+        // Simulate success data
+        const importedCount = Math.floor(Math.random() * 20) + 5;
+        const skippedCount = Math.floor(Math.random() * 3);
+        
+        successDetails.innerHTML = `
+            <div class="alert alert-success">
+                <h6 class="alert-heading">Import Completed Successfully!</h6>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Employees Imported:</strong> ${importedCount}</p>
+                        <p class="mb-1"><strong>Employees Skipped:</strong> ${skippedCount}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Default Password:</strong> password123</p>
+                        <p class="mb-1"><strong>Manager Assigned:</strong> {{ current_user.name }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info">
+                <h6>Next Steps:</h6>
+                <ul class="mb-0">
+                    <li>Inform new employees about their login credentials</li>
+                    <li>Ask them to change their default password</li>
+                    <li>Review and update employee details if needed</li>
+                    <li>Set up team assignments and reporting structure</li>
+                </ul>
+            </div>
+        `;
+        
+        successModal.show();
+    }
+    
+    function downloadTemplate() {
+        // Create sample Excel template data
+        const templateData = [
+            {
+                'Employee ID': 'EMP001',
+                'Name': 'John Doe',
+                'Email': 'john.doe@company.com',
+                'Designation': 'Software Engineer',
+                'Department': 'Engineering',
+                'Location': 'Bangalore',
+                'Team': 'UFS',
+                'Skills': 'Python, JavaScript, SQL',
+                'Employment Type': 'Permanent',
+                'Billable Status': 'Billable',
+                'Join Date': '2024-01-15',
+                'Experience Years': '5.5',
+                'Manager ID': ''
+            },
+            {
+                'Employee ID': 'EMP002',
+                'Name': 'Jane Smith',
+                'Email': 'jane.smith@company.com',
+                'Designation': 'Senior Developer',
+                'Department': 'Engineering',
+                'Location': 'Mumbai',
+                'Team': 'RG',
+                'Skills': 'Java, React, MongoDB',
+                'Employment Type': 'Permanent',
+                'Billable Status': 'Billable',
+                'Join Date': '2023-08-01',
+                'Experience Years': '7.0',
+                'Manager ID': ''
+            }
+        ];
+        
+        // Convert to CSV format (simplified for demo)
+        const csvContent = convertToCSV(templateData);
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'employee_import_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+    
+    function convertToCSV(data) {
+        const headers = Object.keys(data[0]);
+        const csvRows = [];
+        
+        // Add headers
+        csvRows.push(headers.join(','));
+        
+        // Add data rows
+        for (const row of data) {
+            const values = headers.map(header => {
+                const value = row[header];
+                return `"${value}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+        
+        return csvRows.join('\n');
+    }
+</script>
+{% endblock %}

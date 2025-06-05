@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Employee Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header text-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Contact your manager for login credentials
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Default Login Credentials
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Top Manager:</strong></p>
+                <ul class="list-unstyled">
+                    <li>Email: sooraj@company.com</li>
+                    <li>Password: password123</li>
+                </ul>
+                
+                <p class="mb-2 mt-3"><strong>Line Managers:</strong></p>
+                <ul class="list-unstyled">
+                    <li>anuja@company.com / password123</li>
+                    <li>asha@company.com / password123</li>
+                    <li>vinod@company.com / password123</li>
+                </ul>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Note:</strong> Please change your password after first login.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

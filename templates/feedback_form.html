@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Feedback - Employee Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-{{ 'plus' if action == 'Add' else 'edit' }} me-2"></i>{{ action }} Feedback
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- Employee Selection -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="employee_id" class="form-label">Employee *</label>
+                                <select class="form-select" id="employee_id" name="employee_id" required 
+                                        {{ 'disabled' if feedback else '' }}>
+                                    <option value="">Select Employee</option>
+                                    {% for employee in employees %}
+                                    <option value="{{ employee.id }}" 
+                                            {{ 'selected' if feedback and feedback.employee_id == employee.id else '' }}>
+                                        {{ employee.name }} ({{ employee.employee_id }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if feedback %}
+                                <input type="hidden" name="employee_id" value="{{ feedback.employee_id }}">
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="feedback_type" class="form-label">Feedback Type *</label>
+                                <select class="form-select" id="feedback_type" name="feedback_type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Monthly" {{ 'selected' if feedback and feedback.feedback_type == 'Monthly' else '' }}>Monthly</option>
+                                    <option value="Quarterly" {{ 'selected' if feedback and feedback.feedback_type == 'Quarterly' else '' }}>Quarterly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Period Selection -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="period_year" class="form-label">Year *</label>
+                                <select class="form-select" id="period_year" name="period_year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="2024" {{ 'selected' if feedback and feedback.period_year == 2024 else '' }}>2024</option>
+                                    <option value="2023" {{ 'selected' if feedback and feedback.period_year == 2023 else '' }}>2023</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="monthSelection" style="display: none;">
+                            <div class="mb-3">
+                                <label for="period_month" class="form-label">Month</label>
+                                <select class="form-select" id="period_month" name="period_month">
+                                    <option value="">Select Month</option>
+                                    {% for i in range(1, 13) %}
+                                    <option value="{{ i }}" {{ 'selected' if feedback and feedback.period_month == i else '' }}>
+                                        {{ ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                                             'July', 'August', 'September', 'October', 'November', 'December'][i] }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="quarterSelection" style="display: none;">
+                            <div class="mb-3">
+                                <label for="period_quarter" class="form-label">Quarter</label>
+                                <select class="form-select" id="period_quarter" name="period_quarter">
+                                    <option value="">Select Quarter</option>
+                                    <option value="1" {{ 'selected' if feedback and feedback.period_quarter == 1 else '' }}>Q1 (Jan-Mar)</option>
+                                    <option value="2" {{ 'selected' if feedback and feedback.period_quarter == 2 else '' }}>Q2 (Apr-Jun)</option>
+                                    <option value="3" {{ 'selected' if feedback and feedback.period_quarter == 3 else '' }}>Q3 (Jul-Sep)</option>
+                                    <option value="4" {{ 'selected' if feedback and feedback.period_quarter == 4 else '' }}>Q4 (Oct-Dec)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="performance_rating" class="form-label">Performance Rating</label>
+                                <select class="form-select" id="performance_rating" name="performance_rating">
+                                    <option value="">Select Rating</option>
+                                    <option value="1" {{ 'selected' if feedback and feedback.performance_rating == 1 else '' }}>1 - Poor</option>
+                                    <option value="2" {{ 'selected' if feedback and feedback.performance_rating == 2 else '' }}>2 - Below Average</option>
+                                    <option value="3" {{ 'selected' if feedback and feedback.performance_rating == 3 else '' }}>3 - Average</option>
+                                    <option value="4" {{ 'selected' if feedback and feedback.performance_rating == 4 else '' }}>4 - Good</option>
+                                    <option value="5" {{ 'selected' if feedback and feedback.performance_rating == 5 else '' }}>5 - Excellent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Display -->
+                    <div class="row" id="ratingDisplay" style="display: none;">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <div id="starRating" class="mb-2"></div>
+                                        <div id="ratingText" class="text-muted"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback Content -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-comment-dots me-1"></i>Feedback Details
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="goals_achieved" class="form-label">Goals Achieved</label>
+                                <textarea class="form-control" id="goals_achieved" name="goals_achieved" rows="4" 
+                                          placeholder="Describe the goals achieved by the employee...">{{ feedback.goals_achieved if feedback else '' }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="strengths" class="form-label">Strengths</label>
+                                <textarea class="form-control" id="strengths" name="strengths" rows="4" 
+                                          placeholder="Highlight the employee's key strengths...">{{ feedback.strengths if feedback else '' }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="areas_of_improvement" class="form-label">Areas for Improvement</label>
+                                <textarea class="form-control" id="areas_of_improvement" name="areas_of_improvement" rows="4" 
+                                          placeholder="Suggest areas where the employee can improve...">{{ feedback.areas_of_improvement if feedback else '' }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="comments" class="form-label">Additional Comments</label>
+                                <textarea class="form-control" id="comments" name="comments" rows="4" 
+                                          placeholder="Any additional feedback or comments...">{{ feedback.comments if feedback else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('feedback') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Cancel
+                                </a>
+                                <div>
+                                    <button type="button" class="btn btn-outline-info me-2" onclick="previewFeedback()">
+                                        <i class="fas fa-eye me-1"></i>Preview
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>{{ action }} Feedback
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Feedback Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be generated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const feedbackType = document.getElementById('feedback_type');
+        const monthSelection = document.getElementById('monthSelection');
+        const quarterSelection = document.getElementById('quarterSelection');
+        const performanceRating = document.getElementById('performance_rating');
+        const ratingDisplay = document.getElementById('ratingDisplay');
+        
+        // Show/hide period selection based on feedback type
+        feedbackType.addEventListener('change', function() {
+            if (this.value === 'Monthly') {
+                monthSelection.style.display = 'block';
+                quarterSelection.style.display = 'none';
+                document.getElementById('period_quarter').value = '';
+            } else if (this.value === 'Quarterly') {
+                monthSelection.style.display = 'none';
+                quarterSelection.style.display = 'block';
+                document.getElementById('period_month').value = '';
+            } else {
+                monthSelection.style.display = 'none';
+                quarterSelection.style.display = 'none';
+            }
+        });
+        
+        // Show rating display
+        performanceRating.addEventListener('change', function() {
+            if (this.value) {
+                updateRatingDisplay(parseInt(this.value));
+                ratingDisplay.style.display = 'block';
+            } else {
+                ratingDisplay.style.display = 'none';
+            }
+        });
+        
+        // Initialize on page load
+        if (feedbackType.value) {
+            feedbackType.dispatchEvent(new Event('change'));
+        }
+        if (performanceRating.value) {
+            performanceRating.dispatchEvent(new Event('change'));
+        }
+    });
+    
+    function updateRatingDisplay(rating) {
+        const starRating = document.getElementById('starRating');
+        const ratingText = document.getElementById('ratingText');
+        
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            stars += `<i class="fas fa-star ${i <= rating ? 'text-warning' : 'text-muted'}"></i> `;
+        }
+        
+        const ratingTexts = {
+            1: 'Poor - Needs significant improvement',
+            2: 'Below Average - Requires attention and development',
+            3: 'Average - Meets basic expectations',
+            4: 'Good - Exceeds expectations in most areas',
+            5: 'Excellent - Outstanding performance across all areas'
+        };
+        
+        starRating.innerHTML = stars;
+        ratingText.textContent = ratingTexts[rating];
+    }
+    
+    function previewFeedback() {
+        const form = document.querySelector('form');
+        const formData = new FormData(form);
+        
+        // Get selected employee name
+        const employeeSelect = document.getElementById('employee_id');
+        const employeeName = employeeSelect.options[employeeSelect.selectedIndex].text;
+        
+        // Get feedback type and period
+        const feedbackType = formData.get('feedback_type');
+        const year = formData.get('period_year');
+        const month = formData.get('period_month');
+        const quarter = formData.get('period_quarter');
+        
+        let period = '';
+        if (feedbackType === 'Monthly' && month) {
+            const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            period = `${monthNames[parseInt(month)]} ${year}`;
+        } else if (feedbackType === 'Quarterly' && quarter) {
+            period = `Q${quarter} ${year}`;
+        }
+        
+        const rating = formData.get('performance_rating');
+        
+        let previewHtml = `
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Feedback Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Employee:</strong> ${employeeName}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Type:</strong> ${feedbackType}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Period:</strong> ${period}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Rating:</strong> 
+        `;
+        
+        if (rating) {
+            for (let i = 1; i <= 5; i++) {
+                previewHtml += `<i class="fas fa-star ${i <= rating ? 'text-warning' : 'text-muted'}"></i> `;
+            }
+            previewHtml += `(${rating}/5)`;
+        } else {
+            previewHtml += 'Not rated';
+        }
+        
+        previewHtml += `
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Goals Achieved</strong>
+                        </div>
+                        <div class="card-body">
+                            ${formData.get('goals_achieved') || '<em class="text-muted">No content provided</em>'}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Strengths</strong>
+                        </div>
+                        <div class="card-body">
+                            ${formData.get('strengths') || '<em class="text-muted">No content provided</em>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Areas for Improvement</strong>
+                        </div>
+                        <div class="card-body">
+                            ${formData.get('areas_of_improvement') || '<em class="text-muted">No content provided</em>'}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Additional Comments</strong>
+                        </div>
+                        <div class="card-body">
+                            ${formData.get('comments') || '<em class="text-muted">No content provided</em>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('previewContent').innerHTML = previewHtml;
+        
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

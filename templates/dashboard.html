@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Employee Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </h2>
+    <div class="text-muted">
+        Welcome, {{ current_user.name }}
+        {% if current_user.is_manager %}
+        <span class="badge bg-primary ms-2">Manager</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Analytics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Employees</h5>
+                        <h2 class="mb-0">{{ analytics.total_employees }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.is_manager %}
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Direct Reports</h5>
+                        <h2 class="mb-0">{{ current_user.direct_reports|length }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-friends fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Feedback Given</h5>
+                        <h2 class="mb-0">{{ recent_feedback|length }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-comments fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Active Teams</h5>
+                        <h2 class="mb-0">{{ analytics.team.keys()|length }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-project-diagram fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Employment Type
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="employmentTypeChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Billable Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="billableStatusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Teams Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="teamChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Locations
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="locationChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if analytics.skills %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Skills Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="skillsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if current_user.is_manager and recent_feedback %}
+<!-- Recent Feedback Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Feedback
+                </h5>
+                <a href="{{ url_for('feedback') }}" class="btn btn-sm btn-outline-primary">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Period</th>
+                                <th>Rating</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in recent_feedback %}
+                            <tr>
+                                <td>{{ feedback.received_by.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if feedback.feedback_type == 'Monthly' else 'warning' }}">
+                                        {{ feedback.feedback_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if feedback.feedback_type == 'Monthly' %}
+                                        {{ feedback.period_month }}/{{ feedback.period_year }}
+                                    {% else %}
+                                        Q{{ feedback.period_quarter }} {{ feedback.period_year }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if feedback.performance_rating %}
+                                        <div class="d-flex align-items-center">
+                                            {% for i in range(1, 6) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i <= feedback.performance_rating else 'text-muted' }}"></i>
+                                            {% endfor %}
+                                            <span class="ms-2">{{ feedback.performance_rating }}/5</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ feedback.created_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pass analytics data to JavaScript -->
+<script>
+    window.analyticsData = {{ analytics|tojson }};
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDashboardCharts(window.analyticsData);
+    });
+</script>
+{% endblock %}
