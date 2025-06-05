@@ -183,7 +183,7 @@ def create_sample_data():
             'employee_id': 'EMP002',
             'name': 'Anuja Sharma',
             'email': 'anuja@company.com',
-            'designation=': 'Engineering Manager',
+            'designation': 'Engineering Manager',
             'team': 'UFS'
         },
         {

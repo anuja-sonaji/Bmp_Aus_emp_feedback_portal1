@@ -1,83 +1,196 @@
+
 {% extends "base.html" %}
 
 {% block title %}Login - Employee Feedback Portal{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow">
-            <div class="card-header text-center">
-                <h3 class="mb-0">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                </h3>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-envelope"></i>
-                            </span>
-                            <input type="email" class="form-control" id="email" name="email" required>
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-sign-in-alt me-2"></i>Employee Portal
+                    </h3>
+                    <p class="mb-0 mt-2 text-light">Please sign in to continue</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Enter your email" required>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-lock text-muted"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter your password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
-                        </button>
-                    </div>
-                </form>
-            </div>
-            <div class="card-footer text-center text-muted">
-                <small>
-                    <i class="fas fa-info-circle me-1"></i>
-                    Contact your manager for login credentials
-                </small>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Secure login protected by encryption
+                    </small>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-users me-2"></i>Default Login Credentials
-                </h5>
-            </div>
-            <div class="card-body">
-                <p class="mb-2"><strong>Top Manager:</strong></p>
-                <ul class="list-unstyled">
-                    <li>Email: sooraj@company.com</li>
-                    <li>Password: password123</li>
-                </ul>
-                
-                <p class="mb-2 mt-3"><strong>Line Managers:</strong></p>
-                <ul class="list-unstyled">
-                    <li>anuja@company.com / password123</li>
-                    <li>asha@company.com / password123</li>
-                    <li>vinod@company.com / password123</li>
-                </ul>
-                
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Note:</strong> Please change your password after first login.
+        
+        <!-- Demo Credentials Card -->
+        <div class="col-md-6 col-lg-6 mt-4 mt-md-0">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key me-2"></i>Demo Credentials
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>Demo Mode:</strong> Use these credentials for testing
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-crown me-1"></i>Top Manager (VP Level)
+                        </h6>
+                        <div class="bg-light p-3 rounded">
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8">
+                                    <code class="user-select-all">sooraj@company.com</code>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('sooraj@company.com', 'email')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-sm-4"><strong>Password:</strong></div>
+                                <div class="col-sm-8">
+                                    <code class="user-select-all">password123</code>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('password123', 'password')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-success">
+                            <i class="fas fa-users me-1"></i>Line Managers
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="bg-light p-2 rounded small">
+                                    <strong>Anuja Sharma</strong><br>
+                                    <code>anuja@company.com</code><br>
+                                    <code>password123</code>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-2 rounded small">
+                                    <strong>Asha Patel</strong><br>
+                                    <code>asha@company.com</code><br>
+                                    <code>password123</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-1">
+                            <div class="col-md-6">
+                                <div class="bg-light p-2 rounded small">
+                                    <strong>Vinod Singh</strong><br>
+                                    <code>vinod@company.com</code><br>
+                                    <code>password123</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-lightbulb me-1"></i>
+                            <strong>Tip:</strong> Click the copy buttons to quickly fill in credentials
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function copyToClipboard(text, type) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Fill the form field
+        if (type === 'email') {
+            document.getElementById('email').value = text;
+        } else if (type === 'password') {
+            document.getElementById('password').value = text;
+        }
+        
+        // Show feedback
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 1000);
+    });
+}
+
+// Toggle password visibility
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Form validation
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    if (!email || !password) {
+        e.preventDefault();
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    // Add loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+    submitBtn.disabled = true;
+});
+</script>
 {% endblock %}
