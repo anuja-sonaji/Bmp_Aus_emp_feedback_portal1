@@ -306,9 +306,7 @@
 
     
 
-    <!-- Main Content -->
-    {% if current_user.is_authenticated %}
-        <!-- Flash Messages -->
+    <!-- Flash Messages -->
         <div style="padding: 0 30px;">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
