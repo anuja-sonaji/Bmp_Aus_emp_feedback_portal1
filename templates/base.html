@@ -141,16 +141,10 @@
     </div>
 
     <!-- Main Content -->
-    <main class="container">
-        {% if current_user.is_authenticated %}
-        <div class="main-content">
+    <main class="{% if current_user.is_authenticated %}container{% else %}container-fluid{% endif %}">
+        <div class="{% if current_user.is_authenticated %}main-content{% else %}vh-100{% endif %}">
             {% block content %}{% endblock %}
         </div>
-        {% else %}
-        <div class="container-fluid vh-100">
-            {% block content %}{% endblock %}
-        </div>
-        {% endif %}
     </main>
 
     <!-- Footer -->
