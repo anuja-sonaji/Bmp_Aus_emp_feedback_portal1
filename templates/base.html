@@ -147,7 +147,9 @@
             {% block content %}{% endblock %}
         </div>
         {% else %}
-        {% block content %}{% endblock %}
+        <div class="container-fluid vh-100">
+            {% block content %}{% endblock %}
+        </div>
         {% endif %}
     </main>
 
